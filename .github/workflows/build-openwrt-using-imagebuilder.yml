@@ -337,8 +337,9 @@ jobs:
           auto_kernel: ${{ inputs.auto_kernel }}
           kernel_repo: ${{ inputs.kernel_repo }}
           kernel_usage: ${{ inputs.kernel_usage }}
-          kernel_tags: "6.1.115"
           builder_name: ${{ inputs.builder_name }}
+        env:
+          KERNEL_TAGS: "v${{ inputs.openwrt_kernel }}" 
 
       - name: Upload the packaged OpenWrt
         uses: ncipollo/release-action@main
