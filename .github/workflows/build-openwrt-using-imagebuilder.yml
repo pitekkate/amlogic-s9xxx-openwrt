@@ -337,6 +337,7 @@ jobs:
           auto_kernel: ${{ inputs.auto_kernel }}
           kernel_repo: ${{ inputs.kernel_repo }}
           kernel_usage: ${{ inputs.kernel_usage }}
+          kernel_tags: "6.1.y"
           builder_name: ${{ inputs.builder_name }}
 
       - name: Upload the packaged OpenWrt
