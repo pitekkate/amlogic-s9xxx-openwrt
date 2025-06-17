@@ -13,9 +13,10 @@ on:
       kernel_source:
         description: "Select the kernel source"
         required: false
-        default: "unifreq"
+        default: "armbian/linux-rockchip"
         type: choice
         options:
+          - armbian/linux-rockchip
           - unifreq
           - codesnas
       kernel_version:
@@ -85,7 +86,7 @@ on:
         type: choice
         options:
           - -ophub
-          - -yourname
+          - -kangris
 
 env:
   TZ: America/New_York
