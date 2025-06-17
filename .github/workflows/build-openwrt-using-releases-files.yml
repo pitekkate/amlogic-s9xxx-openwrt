@@ -71,6 +71,7 @@ on:
           - r68s
           - renegade-rk3328
           - rk3318-box
+          - rk322x-box
           - rock5b
           - rock5c
           - ruisen-box
@@ -181,7 +182,7 @@ on:
       openwrt_kernel:
         description: "Select kernel version"
         required: false
-        default: "5.15.y_6.1.y"
+        default: "6.1.y"
         type: choice
         options:
           - 5.4.y
@@ -203,10 +204,10 @@ on:
       kernel_repo:
         description: "Set the kernel repository"
         required: false
-        default: "ophub/kernel"
+        default: "pitekkate/kernel-rk322x"
         type: choice
         options:
-          - ophub/kernel
+          - pitekkate/kernel-rk322x
       kernel_usage:
         description: "Set the tags of the stable kernel."
         required: false
@@ -233,7 +234,7 @@ on:
         options:
           - ophub
           - angel
-          - yourname
+          - kangris
 
 env:
   TZ: America/New_York
@@ -313,7 +314,7 @@ jobs:
           armsr_tarfile_path="openwrt/output"
           [[ -d "${armsr_tarfile_path}" ]] || mkdir -p ${armsr_tarfile_path}
           ln -sf /builder/openwrt ${GITHUB_WORKSPACE}/openwrt
-          ln -sf /builder/openwrt /home/runner/work/_actions/ophub/amlogic-s9xxx-openwrt/main/openwrt
+          ln -sf /builder/openwrt /home/runner/work/_actions/pitekkate/amlogic-s9xxx-openwrt/main/openwrt
 
           latest_version=$(curl -s \
                 -H "Accept: application/vnd.github+json" \
@@ -351,7 +352,7 @@ jobs:
           openwrt_kernel: ${{ inputs.openwrt_kernel }}
           auto_kernel: ${{ inputs.auto_kernel }}
           kernel_repo: ${{ inputs.kernel_repo }}
-          kernel_usage: ${{ inputs.kernel_usage }}
+          # kernel_usage: ${{ inputs.kernel_usage }}
           builder_name: ${{ inputs.builder_name }}
 
       - name: Upload the packaged OpenWrt
