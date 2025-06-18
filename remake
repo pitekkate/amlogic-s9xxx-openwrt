@@ -216,7 +216,7 @@ init_var() {
             if [[ -n "${2}" ]]; then
                 oldIFS="${IFS}"
                 IFS="_"
-                kernel-rk322x=(${2})
+                kernel_rk322x=(${2})
                 flippy_kernel=(${2})
                 stable_kernel=(${2})
                 dev_kernel=(${2})
