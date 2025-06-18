@@ -343,18 +343,76 @@ jobs:
           echo "TAGS_NAME=${TAGS_NAME}" >> ${GITHUB_OUTPUT}
           echo "status=success" >> ${GITHUB_OUTPUT}
 
-      - name: Packaging OpenWrt
-        if: ${{ steps.down.outputs.status }} == 'success' && !cancelled()
-        uses: ophub/amlogic-s9xxx-openwrt@main
-        with:
-          openwrt_path: openwrt/output/*rootfs.tar.gz
-          openwrt_board: ${{ inputs.openwrt_board }}
-          openwrt_kernel: ${{ inputs.openwrt_kernel }}
-          auto_kernel: ${{ inputs.auto_kernel }}
-          kernel_repo: ${{ inputs.kernel_repo }}
-          # kernel_usage: ${{ inputs.kernel_usage }}
-          builder_name: ${{ inputs.builder_name }}
-
+      - name: Custom Packaging OpenWrt
+        if: ${{ steps.clean.outputs.status }} == 'success' && !cancelled()
+        run: |
+          echo "=== STARTING CUSTOM PACKAGING ==="
+    
+          # Clone action repository
+          echo "Cloning amlogic-s9xxx-openwrt repository..."
+          git clone https://github.com/pitekkate/amlogic-s9xxx-openwrt.git custom-action
+          cd custom-action
+    
+          # Berikan izin eksekusi pada script remake
+          echo "Setting execute permission for remake script..."
+          chmod +x remake
+    
+          # Pastikan file remake ada
+          echo "Checking remake file existence..."
+          ls -l remake
+    
+          # Fix KERNEL_TAGS check in remake script
+          echo "=== APPLYING SCRIPT FIX ==="
+          sed -i 's/if \[ -z \"\${KERNEL_TAGS}\" \]; then/if [ -z \"${KERNEL_TAGS}\" ] \&\& [ \"${AUTO_KERNEL}\" != \"true\" ]; then/' remake
+          echo "Remake script fixed."
+    
+          # Prepare directories
+          openwrt_savepath="openwrt-armsr"
+          [[ -d "${openwrt_savepath}" ]] || mkdir -p ${openwrt_savepath}
+          openwrt_outpath="openwrt/out"
+          [[ -d "${openwrt_outpath}" ]] || mkdir -p ${openwrt_outpath}
+    
+          # Copy OpenWrt rootfs file
+          echo "=== COPYING ROOTFS FILE ==="
+          openwrt_filename="${{ github.workspace }}/imagebuilder/output/*rootfs.tar.gz"
+          openwrt_savefile=$(basename "$openwrt_filename")
+          cp -vf ${{ github.workspace }}/imagebuilder/output/*rootfs.tar.gz ${openwrt_savepath}/
+          echo "Copied rootfs to: ${openwrt_savepath}/"
+    
+          # Run the fixed remake script
+          echo "=== RUNNING REMAKER SCRIPT ==="
+          sudo ./remake \
+          -b "${{ inputs.openwrt_board }}" \
+          -k "kernel_rk322x" \
+          -a false \
+          -r "${{ inputs.kernel_repo }}" \
+          -u "${{ inputs.kernel_usage }}" \
+          -n "${{ inputs.builder_name }}"
+    
+          # Generate checksums
+          echo "=== GENERATING CHECKSUMS ==="
+          cd ${openwrt_outpath}
+          for file in *; do 
+          [[ -f "${file}" ]] && sha256sum "${file}" >"${file}.sha" 2>/dev/null
+          done
+          rm -f *.sha.sha 2>/dev/null
+          sync
+    
+          # Prepare output directory
+          echo "=== PREPARING OUTPUT ==="
+          mkdir -p ${{ github.workspace }}/packaged-output
+          cp -r * ${{ github.workspace }}/packaged-output/
+          echo "Output files:"
+          ls -lh ${{ github.workspace }}/packaged-output/
+    
+          echo "=== PACKAGING COMPLETE ==="
+        env:
+          KERNEL_TAGS: "kernel_rk322x"
+          AUTO_KERNEL: "false"
+          MODE: "kangris"
+          TZ: America/New_York
+          RELEASES_TAG: ${{ env.RELEASES_TAG }}
+    
       - name: Upload the packaged OpenWrt
         uses: ncipollo/release-action@main
         if: ${{ env.PACKAGED_STATUS }} == 'success' && !cancelled()
