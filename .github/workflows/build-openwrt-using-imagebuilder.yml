@@ -339,7 +339,7 @@ jobs:
           kernel_usage: ${{ inputs.kernel_usage }}
           builder_name: ${{ inputs.builder_name }}
         env:
-          KERNEL_TAGS: "v${{ inputs.openwrt_kernel }}" 
+          KERNEL_TAGS: "kernel-rk322x" 
 
       - name: Upload the packaged OpenWrt
         uses: ncipollo/release-action@main
